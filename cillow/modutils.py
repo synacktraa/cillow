@@ -101,9 +101,7 @@ def get_installed_modules() -> set[str]:
             if top_level := dist.read_text("top_level.txt"):
                 modules.update(top_level.splitlines())
             else:
-                modules.add(
-                    getattr(dist, "name", dist.metadata.get("Name", ""))  # type: ignore[attr-defined,arg-type]
-                )
+                modules.add(dist.name)
         except Exception:  # noqa: S112
             continue
 
