@@ -153,7 +153,7 @@ def is_running_in_jupyter() -> bool:
     """Check if the interpreter is running in a Jupyter notebook"""
     try:
         shell = get_ipython().__class__.__name__  # type: ignore[name-defined]
-        return shell == "ZMQInteractiveShell"
+        return shell == "ZMQInteractiveShell"  # type: ignore[no-any-return]
     except NameError:
         return False
 
@@ -178,7 +178,7 @@ def default_stream_processor(stream: Stream | ByteStream) -> None:
     if stream.type == "image":
         if is_running_in_jupyter():
             # Render the image in the Jupyter notebook output cell
-            from IPython.display import Image, display  # type: ignore[unused-ignore]
+            from IPython.display import Image, display  # type: ignore[unused-ignore,import-not-found]
 
             display(Image(data=stream.data))
         else:
