@@ -183,4 +183,8 @@ def default_stream_processor(stream: Stream | ByteStream) -> None:
             display(Image(data=stream.data))
         else:
             # Open the image in the default image viewer
-            patch.prebuilt.pillow_show_switchable.original(stream.data)  # type: ignore[arg-type]
+            from io import BytesIO
+
+            from PIL.Image import open as pil_open
+
+            patch.prebuilt.pillow_show_switchable.original(pil_open(BytesIO(stream.data)))
