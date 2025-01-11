@@ -1,6 +1,6 @@
 [project]
 name = "cillow"
-version = "0.0.0"
+version = "0.1.0"
 description = "Code Interpreter Library"
 authors = [{ name = "Harsh Verma", email = "synacktra.work@gmail.com" }]
 readme = "README.md"
@@ -24,8 +24,8 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://synacktraa.github.io/cillow/"
-Homepage = "https://synacktraa.github.io/cillow/"
+Documentation = "https://synacktra.is-a-dev/cillow/"
+Homepage = "https://synacktra.is-a-dev/cillow/"
 Repository = "https://github.com/synacktraa/cillow"
 
 [tool.uv]
