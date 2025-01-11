@@ -1,0 +1,138 @@
+[project]
+name = "cillow"
+version = "0.0.0"
+description = "Code Interpreter Library"
+authors = [{ name = "Harsh Verma", email = "synacktra.work@gmail.com" }]
+readme = "README.md"
+keywords = ['python']
+requires-python = ">=3.10,<4.0"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "loguru>=0.7.0",
+    "matplotlib>=3.8.0",
+    "pillow>=10.0.0",
+    "pyzmq>=25.0.0",
+]
+
+[project.urls]
+Documentation = "https://synacktraa.github.io/cillow/"
+Homepage = "https://synacktraa.github.io/cillow/"
+Repository = "https://github.com/synacktraa/cillow"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.2.0",
+    "pytest-asyncio",
+    "pre-commit>=2.20.0",
+    "tox-uv>=1.11.3",
+    "deptry>=0.20.0",
+    "mypy>=0.991",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.6.9",
+    "mkdocs>=1.4.2",
+    "mkdocs-material>=8.5.10",
+    "mkdocstrings[python]>=0.26.1",
+    "mkdocs-redirects>=1.2.2",
+]
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+cookbooks = [
+    "crewai[tools]>=0.95.0",
+    "ipykernel>=6.29.5",
+    "langchain>=0.3.14",
+    "langchain-groq>=0.2.3",
+    "litellm==1.55.0",
+    "llama-index-core>=0.12.10.post1",
+    "llama-index-llms-groq>=0.3.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cillow*"]
+
+[tool.mypy]
+files = ["cillow"]
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+fix = true
+
+[tool.ruff.lint]
+select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+]
+ignore = [
+    # LineTooLong
+    "E501",
+    # DoNotAssignLambda
+    "E731",
+    "TRY",
+    "S301",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S311"]
+
+[tool.ruff.format]
+preview = true
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+source = ["cillow"]
+
+[tool.deptry]
+ignore = ["DEP003"]

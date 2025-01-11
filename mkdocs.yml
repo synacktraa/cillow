@@ -1,0 +1,163 @@
+site_name: cillow
+repo_url: https://github.com/synacktraa/cillow
+site_url: https://synacktraa.github.io/cillow
+site_description: Code Interpreter Library
+site_author: Harsh Verma
+edit_uri: edit/main/docs/
+repo_name: synacktraa/cillow
+copyright: Copyright &copy; 2025 Harsh Verma
+
+nav:
+  - Docs:
+      - index.md
+      - Quickstart:
+          - Using Cillow: quickstart/using_cillow.md
+          - Custom Patches: quickstart/custom_patches.md
+          - Connecting LLMs & Frameworks: quickstart/connecting_LLM_&_Frameworks.md
+
+      - Supported Languages: supported_languages.md
+
+  - Cookbooks: cookbooks.md
+
+  - SDK Reference:
+      - cillow.Interpreter: sdk_reference/interpreter.md
+      - cillow.Switchable: sdk_reference/switchable.md
+      - cillow.Client: sdk_reference/client.md
+      - cillow.Server: sdk_reference/server.md
+      - cillow.patch: sdk_reference/patch.md
+      - cillow.prebuilt_patches: sdk_reference/prebuilt_patches.md
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+    theme:
+    admonition:
+      note: octicons/tag-16
+      abstract: octicons/checklist-16
+      info: octicons/info-16
+      tip: octicons/squirrel-16
+      success: octicons/check-16
+      question: octicons/question-16
+      warning: octicons/alert-16
+      failure: octicons/x-circle-16
+      danger: octicons/zap-16
+      bug: octicons/bug-16
+      example: octicons/beaker-16
+      quote: octicons/quote-16
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - toc.follow
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        "cookbooks.md": "https://github.com/synacktraa/cillow/tree/main/cookbooks"
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [cillow]
+          options:
+            show_object_full_path: false
+            show_category_heading: false
+            show_bases: false
+            show_submodules: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_if_no_docstring: false
+            show_signature: false
+            heading_level: 2
+            show_examples: true
+            filters: ["!^_"]
+          import:
+            - https://docs.python-requests.org/en/master/objects.inv
+
+# xtensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      pygments_style: monokai
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: synacktraa
+      repo: cillow
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - includes/mkdocs.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.arithmatex:
+      generic: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/synacktraa/cillow
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/cillow
