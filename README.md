@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://i.imgur.com/mBdWuQP.gif" width="550px" alt="cillow logo gif">
+    <img src="https://i.imgur.com/mBdWuQP.gif" width="450px" alt="cillow logo gif">
 </p>
 
 ---
