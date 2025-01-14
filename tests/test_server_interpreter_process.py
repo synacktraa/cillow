@@ -6,7 +6,7 @@ from cillow.interpreter import ExceptionInfo, Stream
 from cillow.server._process import _completed, _InterpreterProcess
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def global_interpreter_process():
     with patch("multiprocessing.Process") as MockProcess:
         # Mock the Process and simulate the behavior
@@ -22,7 +22,7 @@ def global_interpreter_process():
         _process.stop()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def non_global_interpreter_process(tmp_path_factory):
     with patch("multiprocessing.Process") as MockProcess:
         # Mock the Process for the non-global interpreter
