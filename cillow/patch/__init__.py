@@ -14,17 +14,17 @@ class PatchProtocol(Protocol):
     def __call__(self) -> ContextManager[None]: ...
 
 
-class PatchWithStreamCaptureProtcol(Protocol):
+class StreamCapturePatchProtcol(Protocol):
     """Patch callable protocol with stream capture callback"""
 
     def __call__(self, on_stream: Callable[[Stream | ByteStream], Any]) -> ContextManager[None]: ...
 
 
-_patches_with_callback: list[PatchWithStreamCaptureProtcol] = []
+_patches_with_callback: list[StreamCapturePatchProtcol] = []
 _patches_without_callback: list[PatchProtocol] = []
 
 
-def add_patches(*patches: PatchProtocol | PatchWithStreamCaptureProtcol) -> None:
+def add_patches(*patches: PatchProtocol | StreamCapturePatchProtcol) -> None:
     """
     Add new patches to be used by all Interpreter instances.
 

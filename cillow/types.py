@@ -5,22 +5,23 @@ from pathlib import Path
 from typing import Any, Literal
 
 PythonEnvironment = Literal["$system"] | Path
+"""Python environment type - either `$system` or a path to a python environment"""
 
 # -----Request Types-----
 
 
 @dataclass(frozen=True)
-class GetEnvrionment:
+class GetPythonEnvironment:
     """Get python environment request type"""
 
-    environment_type: Literal["current", "all"]
+    type: Literal["all", "current", "default"]
 
     def __post_init__(self) -> None:
-        if not isinstance(self.environment_type, str):
-            raise TypeError("environment_type must be a string")
+        if not isinstance(self.type, str):
+            raise TypeError("Environment type must be a string")
 
-        if self.environment_type not in ["current", "all"]:
-            raise ValueError("environment_type must be 'current' or 'all'")
+        if self.type not in ["all", "current", "default"]:
+            raise ValueError("Environment type must be 'all', 'current' or 'default'")
 
 
 @dataclass(frozen=True)
@@ -42,17 +43,45 @@ class ModifyInterpreter:
 
 
 @dataclass(frozen=True)
+class SetEnvironmentVariables:
+    """Set environment variables request type"""
+
+    environment_variables: dict[str, str]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.environment_variables, dict):
+            raise TypeError("environment_variables must be a dictionary")
+
+        if not all(isinstance(k, str) and isinstance(v, str) for k, v in self.environment_variables.items()):
+            raise TypeError("environment_variables must be a dictionary of strings")
+
+
+@dataclass(frozen=True)
+class RunCommand:
+    """Run command request type"""
+
+    cmd: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.cmd, tuple):
+            raise TypeError("cmd must be a tuple")
+
+        if not all(isinstance(c, str) for c in self.cmd):
+            raise TypeError("cmd must be a tuple of strings")
+
+
+@dataclass(frozen=True)
 class InstallRequirements:
     """Install requirements request type"""
 
-    requirements: list[str]
+    requirements: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        if not isinstance(self.requirements, list):
-            raise TypeError("requirements must be a list")
+        if not isinstance(self.requirements, tuple):
+            raise TypeError("requirements must be a tuple")
 
         if not all(isinstance(r, str) for r in self.requirements):
-            raise TypeError("requirements must be a list of strings")
+            raise TypeError("requirements must be a tuple of strings")
 
 
 @dataclass(frozen=True)

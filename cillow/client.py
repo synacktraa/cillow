@@ -13,12 +13,14 @@ from .types import (
     Disconnect,
     ExceptionInfo,
     Execution,
-    GetEnvrionment,
+    GetPythonEnvironment,
     InstallRequirements,
     ModifyInterpreter,
     PythonEnvironment,
     Result,
     RunCode,
+    RunCommand,
+    SetEnvironmentVariables,
     Stream,
 )
 
@@ -52,9 +54,16 @@ class Client:
         ...
         ... img.show()
         ... \"\"\")
-        >>> client.switch_interpreter("/path/to/python/env")  # Switch to interpreter process with given environment
-        >>> client.delete_interpreter("/path/to/python/env")  # Stop interpreter process running in given environment
-        >>> client.install_requirements(["pkg-name1", "pkg-name2"])  # Install requirements in the current interpreter process
+        >>> # Switch to interpreter process with given environment
+        >>> client.switch_interpreter("/path/to/python/env")
+        >>> # Stop interpreter process running in given environment
+        >>> client.delete_interpreter("/path/to/python/env")
+        >>> # Install requirements in the current selected environment
+        >>> client.install_requirements("pkg-name1", "pkg-name2")
+        >>> # Run commands
+        >>> client.run_command("echo", "Hello World")
+        >>> # Set environment variables
+        >>> client.set_environment_variables({"VAR1": "value1", "VAR2": "value2"})
     """
 
     def __init__(
@@ -82,13 +91,19 @@ class Client:
         self.__id = id
         self.__timeout: int | None = None
         self.__current_environment: PythonEnvironment | None = None
+        self.__default_environment: PythonEnvironment | None = None
 
         self.switch_interpreter(environment)
 
+    # fmt: off
     @classmethod
     def new(
-        cls, host: str | None = None, port: int | None = None, environment: PythonEnvironment | str = "$system"
+        cls,
+        host: str | None = None,
+        port: int | None = None,
+        environment: PythonEnvironment | str = "$system"
     ) -> Client:
+        # fmt: on
         """
         Connect to the server as a new client.
 
@@ -104,29 +119,36 @@ class Client:
 
     @property
     def id(self) -> str:
-        """Identifier of the client."""
+        """Client's identifier."""
         return self.__id
 
     @property
-    def timeout(self) -> int | None:
+    def request_timeout(self) -> int | None:
         """Timeout for request in milliseconds."""
         return self.__timeout
 
-    @timeout.setter
-    def timeout(self, value: int) -> None:
+    @request_timeout.setter
+    def request_timeout(self, value: int) -> None:
         self.__timeout = value
 
     @property
+    def default_environment(self) -> PythonEnvironment:
+        """Default Python environment."""
+        if self.__default_environment is None:
+            self.__default_environment = self._get_return_value(GetPythonEnvironment(type="default"))
+        return self.__default_environment
+
+    @property
     def current_environment(self) -> PythonEnvironment:
-        """Current Python environment"""
+        """Current interpreter's python environment."""
         if self.__current_environment is None:
-            self.__current_environment = self._get_return_value(GetEnvrionment(environment_type="current"))
+            self.__current_environment = self._get_return_value(GetPythonEnvironment(type="current"))
         return self.__current_environment
 
     @property
     def all_environments(self) -> list[PythonEnvironment]:
-        """All running Python environments"""
-        return self._get_return_value(GetEnvrionment(environment_type="all"))  # type: ignore[no-any-return]
+        """All running interpreter's python environments."""
+        return self._get_return_value(GetPythonEnvironment(type="all"))  # type: ignore[no-any-return]
 
     def _send_request(self, request_dataclass: Any) -> Generator[tuple[bytes, bytes], None, bytes]:
         """
@@ -167,26 +189,62 @@ class Client:
 
     def switch_interpreter(self, environment: PythonEnvironment | str) -> None:
         """
-        Switch to interpreter associated with the given Python environment.
+        Switch to specified python environment's interpreter process.
 
-        Creates a new interpreter process if it doesn't exists.
+        Creates a new interpreter process if it is not already running.
 
         Args:
             environment: The Python environment to use
         """
-        self.__current_environment = self._get_return_value(ModifyInterpreter(environment=environment, mode="switch"))
+        self.__current_environment = self._get_return_value(ModifyInterpreter(environment, mode="switch"))
 
     def delete_interpreter(self, environment: PythonEnvironment | str) -> None:
         """
-        Delete the interpreter associated with the given Python environment.
-        After deletion, the current environment is set to `$system`.
+        Stop the specified python environment's interpreter process.
+
+        Switches to default python environment's  interpreter process.
 
         Args:
             environment: The Python environment to use
         """
-        self.__current_environment = self._get_return_value(ModifyInterpreter(environment=environment, mode="delete"))
+        self.__current_environment = self._get_return_value(ModifyInterpreter(environment, mode="delete"))
 
-    def install_requirements(self, requirements: list[str], on_stream: Callable[[Stream], None] | None = None) -> None:
+    def set_environment_variables(self, environment_variables: dict[str, str]) -> None:
+        """
+        Set environment variables for the current interpreter.
+
+        Args:
+            environment_variables: The environment variables to set
+        """
+        for _ in self._send_request(SetEnvironmentVariables(environment_variables)):
+            ...
+
+    def run_command(self, *cmd: str, on_stream: Callable[[Stream], None] | None = None) -> None:
+        """
+        Run the given command.
+
+        ⚠️ WARNING: This class allows execution of system commands and should be used with EXTREME CAUTION.
+
+        - Never run commands with user-supplied or untrusted input
+        - Always validate and sanitize any command arguments
+        - Be aware of potential security risks, especially with privilege escalation
+
+        Args:
+            cmd: The command to run
+            on_stream: The callback to capture streaming output.
+        """
+        on_stream = on_stream or default_stream_processor
+        for msg_type, body in self._send_request(RunCommand(cmd=cmd)):
+            if msg_type != b"interpreter":
+                continue
+
+            on_stream(pickle.loads(body))
+
+    # fmt: off
+    def install_requirements(
+        self, *requirements: str, on_stream: Callable[[Stream], None] | None = None
+    ) -> None:
+        # fmt: on
         """
         Install the given requirements in the current Python environment.
 
@@ -194,13 +252,19 @@ class Client:
             requirements: The requirements to install
         """
         on_stream = on_stream or default_stream_processor
-        for msg_type, body in self._send_request(InstallRequirements(requirements=requirements)):
+        for msg_type, body in self._send_request(InstallRequirements(requirements)):
             if msg_type != b"interpreter":
                 continue
 
             on_stream(pickle.loads(body))
 
-    def run_code(self, code: str, on_stream: Callable[[Stream | ByteStream], None] | None = None) -> Execution:
+    # fmt: off
+    def run_code(
+        self,
+        code: str,
+        on_stream: Callable[[Stream | ByteStream], None] | None = None
+    ) -> Execution:
+        # fmt: on
         """
         Run the code in the current selected interpreter.
 
@@ -212,19 +276,18 @@ class Client:
             The execution result containing the result, streams, byte streams and exception.
         """
         on_stream = on_stream or default_stream_processor
-        streams, byte_streams = [], []  # type: ignore[var-annotated]
+        result, streams, byte_streams, exception = Result(value=None), [], [], None
         for msg_type, body in self._send_request(RunCode(code=code)):
             if msg_type != b"interpreter":
                 continue
 
             response = pickle.loads(body)
             if isinstance(response, Result):
-                return Execution(result=response, streams=streams, byte_streams=byte_streams)
-
+                result = response
+                continue
             elif isinstance(response, ExceptionInfo):
-                return Execution(
-                    result=Result(value=None), streams=streams, byte_streams=byte_streams, exception=response
-                )
+                exception = response
+                continue
 
             if isinstance(response, Stream):
                 streams.append(response)
@@ -233,14 +296,19 @@ class Client:
 
             on_stream(response)
 
-        return Execution(  # This should never happen
-            result=Result(value=None), streams=streams, byte_streams=byte_streams, exception=None
+        return Execution(
+            result=result, streams=streams, byte_streams=byte_streams, exception=exception
         )
 
     def disconnect(self) -> None:
-        """Close the connection to the server and clean up all the resources being used by the client."""
+        """
+        Close the connection to the server and remove the client.
+
+        Don't use this if you want to reconnect to the server later.
+        """
         for _ in self._send_request(Disconnect()):
             ...
+
         self._socket.close()
         self._socket.context.term()
 

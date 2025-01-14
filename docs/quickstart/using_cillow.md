@@ -1,16 +1,16 @@
 This guide will show you how to host a server and connect to it from a client.
 
-## Running a Cillow server
+## Running a Cillow Server
 
-We'll write minimal code to run a Cillow server with prebuilt patches.
+We’ll write minimal code to run a Cillow server with prebuilt patches.
 
-Prebuilt patches include patches to capture real-time streaming outputs that are generated during code execution so it can be redirected to the client. Currently, the following patches are available:
+Prebuilt patches include those that capture real-time streaming outputs generated during code execution so they can be redirected to the client. Currently, the following patches are available:
 
 - [`patch_stdout_stderr_write`](../sdk_reference/prebuilt_patches.md#patch_stdout_stderr_write): Captures `sys.stdout` and `sys.stderr` writes.
 - [`patch_matplotlib_pyplot_show`](../sdk_reference/prebuilt_patches.md#patch_matplotlib_pyplot_show): Captures `matplotlib.pyplot.show()` calls.
 - [`patch_pillow_show`](../sdk_reference/prebuilt_patches.md#patch_pillow_show): Captures `PIL.Image.show()` calls.
 
-> We'll discuss more about writing custom patches in the next section.
+> Learn about writing custom patches [here](./custom_patches.md).
 
 ```python
 import cillow
@@ -42,10 +42,9 @@ if __name__ == "__main__":
 - `max_interpreters` limits the total number of interpreter processes that can be created.
 - `interpreters_per_client` limits the number of interpreter processes that can be created per client.
 
-> Refer [Server component](../sdk_reference/server.md) to know more about all parameters, their default states and how they are calculated.
+> Refer to the [Server component](../sdk_reference/server.md) for more information on all parameters, their default values, and how they are calculated.
 
-
-## Connecting to the server
+## Interacting with the Server
 
 ```python
 import cillow
@@ -74,7 +73,7 @@ img.show()
 
 > Images and plot figures are sent as byte streams, so the client can access them in real-time instead of waiting for the final result. Utilize the `on_stream` callback to access the streams.
 
-By default, the environment is selected as `$system` representing the global Python environment. If you wish to connect with a different environment, you can pass the environment argument.
+By default, the environment is selected as `$system`, representing the global Python environment. If you wish to connect to a different environment, you can pass the environment argument.
 
 ```python
 client = cillow.Client.new(
@@ -82,28 +81,40 @@ client = cillow.Client.new(
 )
 ```
 
-### Switching environment
+### Switching Environment
 
-> Every new environment starts up in a new interpreter process and has their own namespace.
+> Every new environment starts up in a new interpreter process and has its own namespace.
 
 ```python
 client.switch_interpreter("/path/to/python/venv")
 ```
 
-### Deleting environment
+### Deleting Environment
 
 ```python
-client.delete_interpreter("/path/to/python/venv")
+client.delete_interpreter("/path/to/python/env")
 ```
 
-> After deletion, it will switch to the default environment used while creating the client.
+> After deletion, it will switch to the default environment used when creating the client.
 
-### Installing requirements
+### Installing Requirements
 
-By default, `run_code()` method automatically installs the requirements if detected in the code. To install requirements explicitly, use:
+By default, the `run_code()` method automatically installs the required packages if they are detected in the code. To install requirements explicitly, use:
 
 ```python
-client.install_requirements(["package-name"])
+client.install_requirements("package1", "package2")
 ```
 
-> If `uv` is installed, it will be used to install the requirements else it will fallback to `pip`.
+> If `uv` is installed, it will be used to install the requirements; otherwise, it will fallback to `pip`.
+
+### Running Commands
+
+```python
+client.run_command("echo", "Hello World")
+```
+
+### Setting Environment Variables
+
+```python
+client.set_environment_variables({"VAR1": "value1", "VAR2": "value2"})
+```

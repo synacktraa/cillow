@@ -1,15 +1,18 @@
-This guide will show you how to write custom patches for your own usecases.
+This guide will show you how to write custom patches for your own use cases.
 
-By default, Cillow include patches to capture real-time streaming outputs that are generated during code execution so it can be redirected to the client. Currently, the following are available:
+Cillow comes with prebuilt patches to capture real-time streaming outputs generated during code execution so they can be redirected to the client when added. Currently, the following patches are available:
 
 - [`patch_stdout_stderr_write`](../sdk_reference/prebuilt_patches.md#patch_stdout_stderr_write): Captures `sys.stdout` and `sys.stderr` writes.
 - [`patch_matplotlib_pyplot_show`](../sdk_reference/prebuilt_patches.md#patch_matplotlib_pyplot_show): Captures `matplotlib.pyplot.show()` calls.
-- [`patch_pillow_show`](../sdk_reference/prebuilt_patches.md/#patch_pillow_show): Captures `PIL.Image.show()` calls.
+- [`patch_pillow_show`](../sdk_reference/prebuilt_patches.md#patch_pillow_show): Captures `PIL.Image.show()` calls.
 
+> Cillow does not add the prebuilt patches by default. You need to add them explicitly. This provides more flexibility and control if you wish to process those streams in a different way.
 
-## Writing your own patches
+---
 
-> Any callable can patched be it a function, class, or method.
+## Writing Your Own Patches
+
+> Any callable can be patched, whether it is a function, class, or method.
 
 ```python
 from contextlib import contextmanager
@@ -38,9 +41,9 @@ with patch_os_system():
     os.system has been disabled.
     ```
 
-It is recommended to not fully disable a functionality as somewhere it might be used to actually perform some action and disabling it will prevent it from working. Instead, just modify the functionality a little based on your usecase.
+It is recommended to avoid fully disabling functionality, as it might be needed elsewhere for actual operations. Instead, modify the functionality based on your specific use case.
 
-For example, if you want the functionality to be disabled for certain inputs, you can use some checks instead of disabling the entire functionality.
+For example, if you want to disable functionality only for certain inputs, you can add conditional checks instead of disabling the entire functionality:
 
 ```python
 os_system_switchable = cillow.Switchable(os.system)
@@ -57,9 +60,11 @@ def patch_os_system():
 ```
 
 !!! tip "Important"
-    Do not call the same functionality you're patching directly in the patch function as it will cause an infinite loop.
+    Avoid directly invoking the patched callable within a patch function, as it can cause an infinite loop.
 
-    Instead, use the `original` method of the Switchable instance to access the original functionality.
+    Instead, use the `original` method of the `Switchable` instance to access the original functionality.
+
+    **Example**: In the example above, we used `os_system_switchable.original` instead of `os.system` to call the original `os.system` function.
 
 ```python
 with patch_os_system():
@@ -74,15 +79,19 @@ with patch_os_system():
     rm commands are blocked.
     ```
 
-> Refer [Switchable component](../sdk_reference/switchable.md) to know how it works internally.
+> Refer to the [Switchable component](../sdk_reference/switchable.md) to learn how it works internally.
 
-### Adding patches
+---
+
+### Adding Patches
 
 ```python
 cillow.add_patches(patch_os_system)
 ```
 
-### Clearing patches
+---
+
+### Clearing Patches
 
 ```python
 cillow.clear_patches()

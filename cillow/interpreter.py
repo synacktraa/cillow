@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from shutil import which as find_executable
 from tempfile import NamedTemporaryFile
@@ -16,7 +17,7 @@ from .types import ByteStream, ExceptionInfo, PythonEnvironment, Result, Stream
 __all__ = ("Interpreter",)
 
 
-PIP_INSTALL_CMD = ["uv", "pip", "install"] if find_executable("uv") else ["pip", "install"]
+PIP_INSTALL_CMD = ("uv", "pip", "install") if find_executable("uv") else ("pip", "install")
 
 
 class Interpreter:
@@ -74,7 +75,33 @@ class Interpreter:
         """The current Python environment"""
         return getattr(self._import_hook, "environment", "$system")
 
-    def install_requirements(self, requirements: list[str], on_stream: Callable[[Stream], None] | None = None) -> None:
+    # fmt: off
+    def run_command(
+        self, *cmd: str, on_stream: Callable[[Stream], Any] | None = None
+    ) -> None:
+        # fmt: on
+        """
+        Run the given command.
+
+        ⚠️ WARNING: This class allows execution of system commands and should be used with EXTREME CAUTION.
+
+        - Never run commands with user-supplied or untrusted input
+        - Always validate and sanitize any command arguments
+        - Be aware of potential security risks, especially with privilege escalation
+
+        Args:
+            cmd: The command to run
+            on_stream: The callback to capture streaming output.
+        """
+        on_stream = on_stream or default_stream_processor
+        for line in shell.stream(*cmd):
+            on_stream(Stream(type="cmd_exec", data=line))
+
+    # fmt: off
+    def install_requirements(
+        self, *requirements: str, on_stream: Callable[[Stream], None] | None = None
+    ) -> None:
+        # fmt: on
         """
         Install the given requirements.
 
@@ -93,9 +120,7 @@ class Interpreter:
             handler.flush()
             install_args.extend(["-r", handler.name])
 
-            on_stream = on_stream or default_stream_processor
-            for line in shell.stream(*PIP_INSTALL_CMD, *install_args):
-                on_stream(Stream(type="cmd_exec", data=line))
+            self.run_command(*PIP_INSTALL_CMD, *install_args, on_stream=on_stream)
 
     def run_code(
         self, code: str, on_stream: Callable[[Stream | ByteStream], None] | None = None
@@ -115,12 +140,12 @@ class Interpreter:
         except Exception as exc:
             return ExceptionInfo(type=exc.__class__.__name__, message=str(exc))
 
-        on_stream = on_stream or default_stream_processor  # TODO: create a function that can process byte stream
-        if module_names := code_meta.module_names:
+        on_stream = on_stream or default_stream_processor
+        if not is_auto_install_disabled() and (module_names := code_meta.module_names):
             to_install = (module_names - sys.stdlib_module_names) - get_installed_modules()
             if to_install:
                 packages = [MODULE_TO_PACKAGE_MAP.get(name, name) for name in to_install]
-                self.install_requirements(packages, on_stream=on_stream)
+                self.install_requirements(*packages, on_stream=on_stream)
 
         try:
             with patch.load_patches(on_stream=on_stream):
@@ -149,6 +174,11 @@ class Interpreter:
             sys.path.pop(0)
 
 
+def is_auto_install_disabled() -> bool:
+    """Check if auto-install is disabled."""
+    return os.environ.get("CILLOW_DISABLE_AUTO_INSTALL", "").lower() in ("1", "true", "yes")
+
+
 def is_running_in_jupyter() -> bool:
     """Check if the interpreter is running in a Jupyter notebook"""
     try:
@@ -159,7 +189,7 @@ def is_running_in_jupyter() -> bool:
 
 
 def default_stream_processor(stream: Stream | ByteStream) -> None:
-    """Default stream processor for the interpreter"""
+    """Interpreter's default stream processor."""
     if isinstance(stream, Stream):
         if stream.type == "stdout":
             original = patch.prebuilt.stdout_write_switchable.original

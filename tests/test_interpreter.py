@@ -43,6 +43,17 @@ def test_interpreter_initialization(tmp_env_path):
     env_interpreter.__del__()
 
 
+def test_interpreter_run_command(interpreter):
+    """Test command execution functionality"""
+
+    def on_stream(stream):
+        assert isinstance(stream, Stream)
+        assert stream.type == "cmd_exec"
+        assert "hello" in stream.data or "world" in stream.data
+
+    interpreter.run_command("echo", "hello world", on_stream=on_stream)
+
+
 def test_code_safety_with_patch(interpreter):
     """Test that dangerous operations are properly handled using cillow patches"""
     os_system_switchable = Switchable(os.system)
@@ -75,7 +86,7 @@ def test_install_requirements(mock_stream, interpreter):
     mock_stream.return_value = ["Installing...", "Successfully installed"]
     mock_callback = Mock()
 
-    interpreter.install_requirements(["requests"], on_stream=mock_callback)
+    interpreter.install_requirements("requests", on_stream=mock_callback)
 
     mock_stream.assert_called_once()
     args = mock_stream.call_args[0]
@@ -88,12 +99,12 @@ def test_install_requirements(mock_stream, interpreter):
 
 
 @patch("cillow.interpreter.shell.stream")
-def test_install_requirements_with_custom_env(mock_stream, tmp_env_path):
-    """Test package installation in custom environment"""
+def test_install_requirements_with_custom_python_env(mock_stream, tmp_env_path):
+    """Test package installation in custom python environment"""
     mock_stream.return_value = ["Installing..."]
     interpreter = Interpreter(environment=tmp_env_path)
 
-    interpreter.install_requirements(["requests"])
+    interpreter.install_requirements("requests")
 
     install_cmd = mock_stream.call_args[0]
     assert "--python" in install_cmd

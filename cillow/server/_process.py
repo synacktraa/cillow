@@ -30,10 +30,14 @@ class _InterpreterProcess:
         self._output_queue = MpQueue()  # type: ignore[var-annotated]
         self._process_event = MpEvent()
 
+        # fmt: off
         self._process = Process(
-            target=_process_event_loop, args=(environment, self._input_queue, self._output_queue, self._process_event)
+            target=_process_event_loop, args=(
+                environment, self._input_queue, self._output_queue, self._process_event
+            )
         )
         self._process.start()
+        # fmt: on
 
     def _send_input(self, **kwargs: Any) -> Generator[Any, None, None]:
         self._input_queue.put(kwargs)
@@ -52,13 +56,13 @@ class _InterpreterProcess:
         """Stop the interpreter process."""
         self._process_event.set()
 
-        # Give process time to finish current task
-        if self._process.is_alive():
-            self._process.join(timeout=3)
-
-        # Force terminate if still running
         if self._process.is_alive():
             self._process.terminate()
+            self._process.join(timeout=5)
+
+        # Force kill if still running
+        if self._process.is_alive():
+            self._process.kill()
             self._process.join()
 
         self._process.close()
@@ -82,6 +86,7 @@ def _process_event_loop(
         output_queue: The queue to write output to
         process_event: The event to stop the process
     """
+    import os
 
     instance = Interpreter(environment)
     try:
@@ -89,12 +94,16 @@ def _process_event_loop(
             request = input_queue.get()
 
             if "code" in request:
-                output_queue.put(instance.run_code(request["code"], output_queue.put))
-                output_queue.put(_completed)
+                output_queue.put(instance.run_code(request["code"], on_stream=output_queue.put))
+            elif "cmd" in request:
+                instance.run_command(*request["cmd"], on_stream=output_queue.put)
             elif "requirements" in request:
-                instance.install_requirements(request["requirements"], output_queue.put)
-                output_queue.put(_completed)
-
+                instance.install_requirements(*request["requirements"], on_stream=output_queue.put)
+            elif "environment_variables" in request:
+                os.environ.update(request["environment_variables"])
+            else:
+                continue
+            output_queue.put(_completed)
     except KeyboardInterrupt:
         return
     finally:

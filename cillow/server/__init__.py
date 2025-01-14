@@ -83,7 +83,7 @@ class Server(Logger):
             max_queue_size: Maximum queue size (defaults to `max_clients * interpreters_per_client * 2`)
         """
         self.socket = zmq.Context().socket(zmq.ROUTER)
-        self._url = f"tcp://127.0.0.1:{port}"
+        self._url = f"tcp://0.0.0.0:{port}"
         self.socket.bind(self._url)
 
         self._client_manager = ClientManager(max_interpreters, interpreters_per_client)

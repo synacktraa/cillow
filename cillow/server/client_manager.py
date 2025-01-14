@@ -76,7 +76,7 @@ class ClientManager(Logger):
 
         Args:
             client_id: The client identifier
-            environment: The default environment to use. This environment will also be used as default when an interpreter instance is deleted.
+            environment: The environment to use. This environment will be used as default when an interpreter process is deleted.
 
         Raises:
             Exception: If the client limit is exceeded.
@@ -181,3 +181,4 @@ class ClientManager(Logger):
         for info in self._clients.values():
             for interpreter in info.interpreters.values():
                 interpreter.stop()
+        self._clients.clear()
