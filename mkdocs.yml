@@ -14,7 +14,7 @@ nav:
           - Using Cillow: quickstart/using_cillow.md
           - Custom Patches: quickstart/custom_patches.md
           - Connecting LLMs & Frameworks: quickstart/connecting_LLM_&_Frameworks.md
-
+      - Sandboxing The Server: sandboxing_the_server.md
       - Supported Languages: supported_languages.md
 
   - Cookbooks: cookbooks.md

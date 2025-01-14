@@ -81,7 +81,7 @@ client = cillow.Client.new(
 )
 ```
 
-### Switching Environment
+### Switching Python Environment
 
 > Every new environment starts up in a new interpreter process and has its own namespace.
 
@@ -89,7 +89,7 @@ client = cillow.Client.new(
 client.switch_interpreter("/path/to/python/venv")
 ```
 
-### Deleting Environment
+### Deleting Python Environment
 
 ```python
 client.delete_interpreter("/path/to/python/env")
@@ -104,6 +104,8 @@ By default, the `run_code()` method automatically installs the required packages
 ```python
 client.install_requirements("package1", "package2")
 ```
+
+To disable automatic installation feature in `run_code` method, set `CILLOW_DISABLE_AUTO_INSTALL` environment variable to `1`.
 
 > If `uv` is installed, it will be used to install the requirements; otherwise, it will fallback to `pip`.
 

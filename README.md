@@ -1,6 +1,6 @@
-# cillow
-
-<p align="center">Code Interpreter Library</p>
+<p align="center">
+    <img src="https://i.imgur.com/mBdWuQP.gif" width="550px" alt="cillow logo gif">
+</p>
 
 ---
 
