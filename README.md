@@ -29,7 +29,7 @@ It offers key features such as:
 
 ### Check Documentation
 
-Visit [synacktra.is-a.dev/cillow](https://synacktra.is-a.dev/cillow/)
+Visit [synacktraa.github.io/cillow](https://synacktraa.github.io/cillow)
 
 ### Installation
 
